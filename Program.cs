@@ -1,15 +1,42 @@
 using IdentityApp.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+
+
+
 builder.Services.AddDbContext<IdentityContext>(
     options=>options.UseSqlite(builder.Configuration["ConnectionStrings:Sqlite_Connection"]));
 
-builder.Services.AddIdentity<IdentityUser,IdentityRole>().AddEntityFrameworkStores<IdentityContext>();
+builder.Services.AddIdentity<AppUser,AppRole>().AddEntityFrameworkStores<IdentityContext>();
+
+builder.Services.Configure<IdentityOptions>(options=>{
+
+options.Password.RequiredLength=6;//min 6 karakterli parola
+options.Password.RequireNonAlphanumeric=false;//numarik karakter zorunluluğu
+options.Password.RequireLowercase=false;//küçük harf zorunluluğu
+options.Password.RequireUppercase=false;//büyük harf duyarlılığı
+options.Password.RequireDigit=false;//sayıslal değer
+
+options.User.RequireUniqueEmail=false;//aynı email kullanma durumu
+
+
+
+
+    });
+
+
+
+
+
+
+
 
 var app = builder.Build();
 

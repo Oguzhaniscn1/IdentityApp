@@ -5,8 +5,10 @@ namespace IdentityApp.ViewModels
 
     public class CreateViewModel
     {
+
+
         [Required]
-        public string UserName { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
@@ -20,6 +22,8 @@ namespace IdentityApp.ViewModels
         [DataType(DataType.Password)]
         [Compare(nameof(Password),ErrorMessage ="parola eşleşmiyor.")]
         public string ConfirmPasswpord { get; set; } = string.Empty;
+
+
 
 
     }
