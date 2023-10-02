@@ -23,7 +23,7 @@ namespace IdentityApp.ViewModels
         [Compare("Password",ErrorMessage ="parola eşleşmiyor.")]
         public string? ConfirmPasswpord { get; set; } 
 
-
+        public IList<string>? SelectedRoles {get;set;}
 
     }
 
