@@ -37,7 +37,7 @@ namespace IdentityApp.Controllers
             if(ModelState.IsValid)
             {
                 var user=new AppUser{
-                    UserName=model.Email,
+                    UserName=model.UserName,
                     Email=model.Email,
                     FullName=model.FullName
 
