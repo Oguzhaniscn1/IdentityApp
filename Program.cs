@@ -26,12 +26,20 @@ options.Password.RequireDigit=false;//sayıslal değer
 
 options.User.RequireUniqueEmail=false;//aynı email kullanma durumu
 
+options.Lockout.DefaultLockoutTimeSpan=TimeSpan.FromMinutes(5);//5 dakika uzak tut
+options.Lockout.MaxFailedAccessAttempts=5;//5 deneme hakkı
 
 
 
     });
 
-
+builder.Services.ConfigureApplicationCookie(options=>{
+    options.LoginPath="/Account/Login";
+    options.LogoutPath="/Account/AccessDenied";
+    options.SlidingExpiration=true;
+    options.ExpireTimeSpan=TimeSpan.FromDays(30);
+    
+});
 
 
 
@@ -52,6 +60,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+
+app.UseAuthentication();//autheticati aktif et
 
 app.UseAuthorization();
 
