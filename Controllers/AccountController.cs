@@ -11,11 +11,14 @@ namespace IdentityApp.Controllers
         private UserManager<AppUser> _usermanager;
 
         private SignInManager<AppUser> _signInManager;
-        public AccountController(RoleManager<AppRole> roleManeger,UserManager<AppUser> usermanager,SignInManager<AppUser> signInManager)
+
+        private IEmailSender _emailSender;
+        public AccountController(RoleManager<AppRole> roleManeger,UserManager<AppUser> usermanager,SignInManager<AppUser> signInManager,IEmailSender emailSender)
         {
             _roleManeger=roleManeger;
             _usermanager=usermanager;
             _signInManager=signInManager;
+            _emailSender=emailSender;
         }
 
         public IActionResult Login()
@@ -32,6 +35,14 @@ namespace IdentityApp.Controllers
                 if(user!=null)
                 {
                     await _signInManager.SignOutAsync();//giriş yapmıisa sil cookie
+
+                    if(!await _usermanager.IsEmailConfirmedAsync(user))
+                    {
+                        ModelState.AddModelError("","hesaınızı onaylayınız");
+                        return View(model);
+                    }
+
+
                     var result=await _signInManager.PasswordSignInAsync(user,model.Password,model.RememberMe,true);
                     if(result.Succeeded)
                     {
@@ -60,6 +71,81 @@ namespace IdentityApp.Controllers
         
         
         }
+
+
+
+        public IActionResult Create()
+        {
+            return View();
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> Create(CreateViewModel model)
+        {
+
+            if(ModelState.IsValid)
+            {
+                var user=new AppUser{
+                    UserName=model.UserName,
+                    Email=model.Email,
+                    FullName=model.FullName
+
+                };
+
+                IdentityResult result=await _usermanager.CreateAsync(user,model.Password);
+
+                if(result.Succeeded)
+                {
+                    var token=await _usermanager.GenerateEmailConfirmationTokenAsync(user);
+                    var url=Url.Action("ConfirmEmail","Account",new {
+                        Id=user.Id,token=token
+                    });
+
+
+                    await _emailSender.SendEmailSender(user.Email,"Hesap Onayı",$"lütfen email hesabınızı onaylamak için linke <a href='http://localhost:5031/{url}'>tıklaıyınız.</a>");
+
+
+                    TempData["message"]="Email Hesabınızdaki onay mailine tıklayınız";
+                    return RedirectToAction("Login","Account");
+                }
+
+                foreach(IdentityError err in result.Errors)
+                {
+                    ModelState.AddModelError("",err.Description);
+                }
+
+            }
+
+            return View(model);
+        }
+
+
+        public async Task<IActionResult> ConfirmEmail(string Id,string token)
+        {
+            if(Id==null||token==null)
+            {
+                TempData["message"]="Geçerisiz token bilgisi";
+                return View();
+            }
+
+            var user=await _usermanager.FindByIdAsync(Id);
+            if(user!=null)
+            {
+                var result=await _usermanager.ConfirmEmailAsync(user,token);
+            
+                if(result.Succeeded)
+                {
+                    TempData["message"]="Hesabınız onaylandı";
+                    return RedirectToAction("Login","Account");
+
+                }
+   
+            }
+            TempData["message"]="Kullanıcı bulunamadı";
+            return View();
+
+        }
+
 
 
     }
